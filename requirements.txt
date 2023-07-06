@@ -1,0 +1,6 @@
+flask==2.3.2
+flask_hcaptcha==0.6.0
+pymemcache==4.0.0
+dnspython==2.3.0
+pymongo==4.4.0
+bcrypt==4.0.1

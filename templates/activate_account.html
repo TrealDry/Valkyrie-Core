@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <title>Activate</title>
+</head>
+<body>
+    <form method="post" action="">
+        Your password:
+        <input type="password" name="password"><br><br>
+        <div class="h-captcha" data-sitekey="{{ SITE_KEY }}"></div>
+        <input class="btn" type="submit" value="Activate"><br><br>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+    </form>
+</body>
+</html>
