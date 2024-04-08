@@ -13,6 +13,28 @@ for file in listdir(r"."):
         continue
 
 
+def env(key, type_, default=None):
+    if env_is_not_exist:
+        return default
+
+    env_value = getenv(key)
+
+    if env_value is None:
+        print(f"КЛЮЧ {key} НЕ БЫЛ НАЙДЕЙ!")
+        return default
+
+    if type_ == str:
+        return env_value
+    elif type_ == int:
+        try:
+            return int(env_value)
+        except ValueError:
+            print(f"КЛЮЧ {key} НЕ МОЖЕТ БЫТЬ ПРЕОБРАЗОВАН В INT!")
+            return default
+    else:
+        return env_value
+
+
 # == Server settings ==
 
 IP = "0.0.0.0"
@@ -24,7 +46,7 @@ MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB max
 GD_SERVER_NAME = "Geometry Dash Private Server"
 DISCORD_SERVER_LINK = "https://discord.com/"
 
-DOMAIN = "https://127.0.0.1:5000"  # https://example.com
+DOMAIN = "https://127.0.0.1:5000"
 
 PATH_TO_API = "/api"
 PATH_TO_ROOT = getcwd()
@@ -39,21 +61,21 @@ COMMAND_PREFIX = "!"
 
 ACCOUNTS_ACTIVATION_VIA_MAIL = False
 
-MAIL_SERVER = "" if env_is_not_exist else getenv("MAIL_SERVER")  # only TLS
-MAIL_USERNAME = "" if env_is_not_exist else getenv("MAIL_USERNAME")
-MAIL_PASSWORD = "" if env_is_not_exist else getenv("MAIL_PASSWORD")
-MAIL_PORT = 0 if env_is_not_exist else getenv("MAIL_PORT")
+MAIL_SERVER = env("MAIL_SERVER", str, "")  # only TLS
+MAIL_USERNAME = env("MAIL_USERNAME", str, "")
+MAIL_PASSWORD = env("MAIL_PASSWORD", str, "")
+MAIL_PORT = env("MAIL_PORT", int, 0)
 
-MONGO_URI = "" if env_is_not_exist else getenv("MONGO_URI")
-MONGO_NAME = "" if env_is_not_exist else getenv("MONGO_NAME")
+MONGO_URI = env("MONGO_URI", str, "")
+MONGO_NAME = env("MONGO_NAME", str, "")
 
-REDIS_HOST = "" if env_is_not_exist else getenv("REDIS_HOST")
-REDIS_PORT = 0 if env_is_not_exist else getenv("REDIS_PORT")
-REDIS_PASSWORD = "" if env_is_not_exist else getenv("REDIS_PASSWORD")
+REDIS_HOST = env("REDIS_HOST", str, "")
+REDIS_PORT = env("REDIS_PORT", int, 0)
+REDIS_PASSWORD = env("REDIS_PASSWORD", str, "")
 REDIS_PREFIX = "EUPH"
 
-HCAPTCHA_SITE_KEY = "" if env_is_not_exist else getenv("HCAPTCHA_SITE_KEY")
-HCAPTCHA_SECRET_KEY = "" if env_is_not_exist else getenv("HCAPTCHA_SECRET_KEY")
+HCAPTCHA_SITE_KEY = env("HCAPTCHA_SITE_KEY", str, "")
+HCAPTCHA_SECRET_KEY = env("HCAPTCHA_SECRET_KEY", str, "")
 
 # == ==
 
