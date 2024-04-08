@@ -333,6 +333,12 @@ def get_level():
             elif account_id not in friend_list:
                 return "-1"
 
+    hash_string = ""
+    response_user = []
+    response_user_name = {}
+
+    song_ids = []
+
     for lvl in levels:
         diff = 0
 
@@ -362,46 +368,50 @@ def get_level():
             38: lvl["is_silver_coins"], 39: 0, 46: 1, 47: 2, 35: non_official_song_id, 44: gauntlet_bool
         }
 
-        response += resp_proc(single_response) + "|"
-    else:
-        response = response[:-1] + "#"
+        # == Получение хеш строки ==
 
-    hash_string = ""
-    response_user = []
-    response_user_name = {}
-
-    for lvl in levels:
         response_user.append(lvl['account_id'])
         response_user_name[lvl['account_id']] = lvl['username']
 
         hash_string += str(lvl["_id"])[0] + str(lvl["_id"])[-1] + \
                        str(lvl["stars"]) + str(lvl["is_silver_coins"])
-    else:
-        response_user = list(set(response_user))
 
-        for user in response_user:
-            response += f"{user}:{response_user_name[user]}:{user}|"
+        # == ==
 
-        response = response[:-1] + "#"
+        # == Получение айдишников музыки ==
 
-    for lvl in levels:
         if (lvl["song_id"] > 0 and lvl["is_official_song"] == 0) or lvl["song_ids"] != "":
-            song_ids = [lvl["song_id"]]
+            song_ids += [lvl["song_id"]]
 
             if lvl["song_ids"] != "":
                 song_ids += list(map(int, lvl["song_ids"].split(",")))
 
-            for song in song_ids:
-                try:
-                    song_info = list(db.song.find({"_id": song}))[0]
-                    single_song = {
-                        1: song_info["_id"], 2: song_info["name"], 3: 0,
-                        4: song_info["artist_name"], 5: "{0:.2f}".format(song_info["size"]),
-                        6: "", 10: song_info["link"], 7: "", 8: 0
-                    }
-                    response += resp_proc(single_song, 3) + "~:~"
-                except IndexError:
-                    continue
+        # == ==
+
+        response += resp_proc(single_response) + "|"
+    else:
+        response = response[:-1] + "#"
+
+    response_user = list(set(response_user))
+
+    for user in response_user:
+        response += f"{user}:{response_user_name[user]}:{user}|"
+    else:
+        response = response[:-1] + "#"
+
+    song_ids = list(set(song_ids))
+
+    for song in song_ids:
+        try:
+            song_info = list(db.song.find({"_id": song}))[0]
+            single_song = {
+                1: song_info["_id"], 2: song_info["name"], 3: 0,
+                4: song_info["artist_name"], 5: "{0:.2f}".format(song_info["size"]),
+                6: "", 10: song_info["link"], 7: "", 8: 0
+            }
+            response += resp_proc(single_song, 3) + "~:~"
+        except IndexError:
+            continue
     else:
         if response[-2:] == ":~":
             response = response[:-2]
