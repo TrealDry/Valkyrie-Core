@@ -183,6 +183,6 @@ def get_level_lists():
         response = response[:-1] + "#"
 
     response += f"{db.level_list.count_documents(query)}:{offset}:10#"
-    response += "vcorevcorevcorevcorevcorevcorevcorevcore"
+    response += "vcore" * 8
 
     return response
