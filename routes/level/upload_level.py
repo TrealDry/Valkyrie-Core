@@ -21,6 +21,8 @@ from utils.base64_dec_and_enc import base64_decode
 MAXIMUM_LEVEL_SIZE = 5 * 1024 * 1024  # 5 MB
 MINIMUM_NUMBER_BLOCKS = 49
 
+RESERVED_LEVEL_IDS = (3001, 5001, 5002, 5003, 5004)
+
 
 @level.route(f"{PATH_TO_DATABASE}/uploadGJLevel21.php", methods=("POST", "GET"))
 def upload_level():
@@ -65,9 +67,6 @@ def upload_level():
     sfx_ids = request_get("sfxIDs")
     ts = request_get("ts", int)
 
-    # unlisted1 = request_get("unlisted1", "int")  # я не ебу что они делают
-    # unlisted2 = request_get("unlisted2", "int")
-
     gd_version = check_version()
 
     if gd_version >= 22:
@@ -81,8 +80,6 @@ def upload_level():
 
     if len(level_name) == 0 or len(level_string) == 0:
         return "-1"
-
-    #level_password = 1 if 1 <= level_password <= 7 else 0  # open or close
 
     if not limit_check(
         (level_length, 5 if gd_version >= 22 else 4), (len(base64_decode(level_desc)), 140), (two_player, 1),
@@ -110,7 +107,10 @@ def upload_level():
             return "-1"
 
         level_id = last_id(db.level)
-        level_id = level_id if level_id >= 100 else 100
+        level_id = level_id if level_id >= 100 else 100  # Зарезервировано от 1 до 100 идентификаторов уровней
+
+        while level_id in RESERVED_LEVEL_IDS:
+            level_id += 1
 
         with open(join(
             PATH_TO_ROOT, "data", "level", f"{str(level_id)}.level"
