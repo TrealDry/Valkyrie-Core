@@ -6,6 +6,7 @@ from utils import database as db
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 
 
 @level.route(f"{PATH_TO_DATABASE}/rateGJDemon21.php", methods=("POST", "GET"))
@@ -40,7 +41,8 @@ def rate_demon():
 
     try:
         role_id = db.role_assign.find_one({"_id": account_id})["role_id"]
-    except IndexError:
+    except:
+        plugin_manager.call_event("on_level_rate_demon", level_id, account_id, 0, demon_type)
         return "1"
 
     access = db.role.find_one({"_id": role_id})["command_access"]["rate_demon_button"]
@@ -55,5 +57,7 @@ def rate_demon():
             db.level.update_one({"_id": level_id}, {"$set": {
                 "demon_type": demon_type
             }})
+
+    plugin_manager.call_event("on_level_rate_demon", level_id, account_id, role_id, demon_type)
 
     return str(level_id)

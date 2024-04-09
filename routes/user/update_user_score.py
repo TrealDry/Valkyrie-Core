@@ -8,6 +8,7 @@ from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
 from utils.check_version import check_version
+from utils.plugin_manager import plugin_manager
 from utils.limit_check import limit_check, new_limit_check
 
 
@@ -136,6 +137,8 @@ def update_user_score():
 
     # == Никогда не доверяй вводу пользователей ==
 
+    stats_before_update = tuple(db.account_stat.find({"_id": account_id}))[0]
+
     db.account_stat.update_one({"_id": account_id}, {"$set": {
         "stars": start,
         "moons": moons,
@@ -159,5 +162,25 @@ def update_user_score():
         "second_color": second_color,
         "third_color": third_color
     }})
+
+    plugin_manager.call_event(
+        "on_player_score_update", account_id,
+        {
+            "stars": stats_before_update["stars"],
+            "moons": stats_before_update["moons"],
+            "demons": stats_before_update["demons"],
+            "diamonds": stats_before_update["diamonds"],
+            "user_coins": stats_before_update["user_coins"],
+            "secret_coins": stats_before_update["secret_coins"]
+        },
+        {
+            "stars": start,
+            "moons": moons,
+            "demons": demons,
+            "diamonds": diamonds,
+            "user_coins": user_coins,
+            "secret_coins": secret_coins
+        }
+    )
 
     return str(account_id)

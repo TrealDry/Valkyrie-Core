@@ -7,6 +7,7 @@ from utils.regex import char_clean
 from utils.passwd import check_password
 from utils.redis_db import client as rd
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 from utils.request_get import request_get, get_ip
 
 
@@ -63,5 +64,7 @@ def login_account():
 
         rd.incr(f"{REDIS_PREFIX}:{ip}:login", 1)
         return "-11"
+
+    plugin_manager.call_event("on_player_login", account_id, username)
 
     return f"{account_id},{account_id}"

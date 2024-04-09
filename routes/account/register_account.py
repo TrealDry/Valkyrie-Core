@@ -16,6 +16,7 @@ from utils.redis_db import client as rd
 from utils.mail_sender import mail_sender
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 from utils.passwd import password_hashing, generate_gjp2
 
 
@@ -89,5 +90,7 @@ def register_account():
         "is_banned": 0,
         "is_valid": 0
     })
+
+    plugin_manager.call_event("on_player_new", account_id, username)
 
     return "1"

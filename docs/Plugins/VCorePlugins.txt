@@ -1,0 +1,81 @@
+Документация о создание плагинов для VCore.
+
+PluginManager - Класс, ответающий за загрузку, отгрузку, вызовов методов плагина.
+
+== Основные методы ==
+
+PluginManager.start() -> None
+	- Автоматически вызывается при запуске ядра. Вызывает метод _auto_load_plugins().
+
+PluginManager._auto_load_plugins() -> None 
+	- Автоматически загружает все плагины с папки ./plugins.
+	
+PluginManager.load_plugin(plugin_path: str) -> str
+	- Загружает плагин по названию плагина. Возвращает имя плагина при удачной загрузке.
+
+PluginManager.unload_plugin(plugin_name: str) -> bool
+	- Выгружает плагин. Возвращает True, если плагин успешно выгружен.
+
+PluginManager.reload_plugin(plugin_name: str) -> bool
+	- Выгружает и загружает плагин. Возвращает True, если плагин успешно перезагрузился.
+
+PluginManager.is_plugin_exist(plugin_name: str) -> bool
+	- Существует ли плагин.
+
+PluginManager.call_event(event_name: str, *args) -> None
+	- Вызывает эвент.
+
+PluginManager.call_method(plugin_name: str, method_name: str, *args) -> Any
+	- Вызывает метод плагина. Возвращает ответ метода.
+	
+PluginManager.get_plugin_object(plugin_name: str) -> Any
+	- Возвращает объект плагина. Если плагина не существует, то возвращает None.
+	
+== ==
+
+
+Plugin - Класс родитель для плагинов.
+
+== Основные методы ==
+
+Plugin.plugin_init() -> bool
+	- Вызывается при инициализации объекта Plugin. При удачной инициализации возвращает True.
+
+Plugin.plugin_destruction() -> None
+	- Вызывается при уничтожении/выгрузки объекта Plugin.
+	
+== ==
+
+== События ==
+
+Обыкновенные события в вызываются после выполнения эндпоинта
+
+Plugin.on_player_new(account_id: int, username: str) -> None
+Plugin.on_player_activate(account_id: int, username: str) -> None
+Plugin.on_player_login(account_id: int, username: str) -> None
+Plugin.on_player_backup(account_id: int, username: str) -> None
+	- username начиная с версии 2.2 будет пустым
+Plugin.on_player_sync(account_id: int, username: str) -> None
+	- username начиная с версии 2.2 будет пустым
+Plugin.on_player_score_update(account_id: int, user_stats_before: dict, user_stats_now: dict) -> None
+
+Plugin.on_level_upload(level_id: int, level_name: str, account_id: int, username: str) -> None
+Plugin.on_level_update(level_id: int, level_version: int, account_id: int, username: str) -> None
+Plugin.on_level_delete(level_id: int, account_id: int) -> None
+
+Plugin.on_level_rate(level_id: int, level_name: str builder_id: int, builder_name: str, mod_id: int, mod_name: str, 
+					 role_id: int, is_send: bool, stars: int, feature: int) -> None
+	- Относится к эндпоинту suggestStars
+Plugin.on_level_rate_stars(level_id: int, account_id: int, stars: int) -> None
+Plugin.on_level_rate_demon(level_id: int, account_id: int, role_id: int, diff: int) -> None
+Plugin.on_level_report(level_id: int, ip: str) -> None
+
+Plugin.on_like_item(account_id: int, item_id: int, item_type: int, is_like: bool)
+
+В будущих версиях ядра будут добавлены:
+	* События БлокПосты, вызывающиеся после проверки пароля, и до выполнения кода. В качестве аргумента БлокПосту
+	  отправляется сам запрос (пароль скрывается) с аргументами. На выходе булевая, которая при False немедленно завершит работу эндпоинта.
+	* Специальные События. Под ними может подрузомиватся всё что угодно. Например есть вкладка Magic, и мы хотим изменить
+	  логику попадания туда уровней, чтобы там были только уровни со звёздами. В этом примере спец событие могло бы решить проблему.
+
+== ==

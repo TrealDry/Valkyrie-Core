@@ -9,6 +9,7 @@ from utils import database as db
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 
 
 def removal_of_residues(level_id):
@@ -68,5 +69,7 @@ def delete_level():
                 target=removal_of_residues,
                 args=(level_id,))
     th.start()
+
+    plugin_manager.call_event("on_level_delete", level_id, account_id)
 
     return "1"

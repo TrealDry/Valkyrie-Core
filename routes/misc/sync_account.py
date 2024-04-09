@@ -8,6 +8,7 @@ from utils.regex import char_clean
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 
 
 @misc.route("/database/accounts/syncGJAccountNew.php", methods=("POST", "GET"))
@@ -49,5 +50,7 @@ def sync_account():
             save_data = file.read()
     except FileNotFoundError:
         return "-1"
+
+    plugin_manager.call_event("on_player_sync", account_id, username)
 
     return save_data + ";21;30;a;a"
