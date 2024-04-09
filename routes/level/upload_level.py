@@ -14,6 +14,7 @@ from utils.limit_check import limit_check
 from utils.request_get import request_get
 from utils.check_secret import check_secret
 from utils.check_version import check_version
+from utils.plugin_manager import plugin_manager
 from utils.request_limiter import request_limiter
 from utils.base64_dec_and_enc import base64_decode
 
@@ -82,7 +83,8 @@ def upload_level():
         return "-1"
 
     if not limit_check(
-        (level_length, 5 if gd_version >= 22 else 4), (len(base64_decode(level_desc)), 140), (two_player, 1),
+        (level_length, 5 if gd_version >= 22 else 4),
+        (len(base64_decode(level_desc)), 180 if gd_version >= 22 else 140), (two_player, 1),
         (unlisted, 2 if gd_version >= 22 else 1), (len(str(original)), 12), (coins, 3), (ldm, 1), (len(level_name), 20)
     ):
         return "-1"
@@ -99,6 +101,8 @@ def upload_level():
 
     song_id = audio_track if bool(is_official_song) else song_id
     level_id = request_get("levelID", "int")
+
+    username = db.account.find_one({"_id": account_id})["username"]
 
     if level_id == 0:
         if not request_limiter(
@@ -130,6 +134,8 @@ def upload_level():
         }
 
         db.level.insert_one(sample_level)
+
+        plugin_manager.call_event("on_level_upload", level_id, level_name, account_id, username)
 
         return str(level_id)
 
@@ -182,6 +188,8 @@ def upload_level():
             "game_version": gd_version,
             "ts": ts
         }})
+
+        plugin_manager.call_event("on_level_update", level_id, level_version + 1, account_id, username)
 
         return str(level_id)
 

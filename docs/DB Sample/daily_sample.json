@@ -1,0 +1,6 @@
+{
+  "daily_id": 1,
+  "type_daily": 0, // 0 = daily, 1 = weekly
+  "level_id": 1,
+  "timestamp": 0
+}

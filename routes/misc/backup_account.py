@@ -1,7 +1,6 @@
 from . import misc
 from os.path import join
 from sys import getsizeof
-from icecream import ic
 from config import PATH_TO_ROOT, REDIS_PREFIX
 
 from utils import database as db
@@ -11,6 +10,7 @@ from utils.redis_db import client as rd
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 
 
 MAX_SIZE = [  # no vip, vip
@@ -24,7 +24,6 @@ def backup_account():
     if not check_secret(
         request_get("secret"), 0
     ):
-        ic()
         return "-1"
 
     username = char_clean(request_get("userName"))
@@ -68,5 +67,7 @@ def backup_account():
         file.write(save_data)
 
     rd.set(f"{REDIS_PREFIX}:{account_id}:backup", "1", 60)  # Тайм аут 60 секунд
+
+    plugin_manager.call_event("on_player_backup", account_id, username)
 
     return "1"

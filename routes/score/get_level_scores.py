@@ -121,6 +121,9 @@ def get_level_scores():
                 friend_list = db.friend_list.find_one({"_id": account_id})["friend_list"]
             except IndexError:
                 return ""
+            except TypeError:
+                return ""
+
             query["account_id"] = {"$in": friend_list + [account_id]}
 
         case 1:  # Top

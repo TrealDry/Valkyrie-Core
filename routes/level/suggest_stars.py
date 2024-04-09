@@ -8,6 +8,7 @@ from utils import database as db
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 from utils.difficulty_converter import diff_conv
 
 
@@ -104,5 +105,17 @@ def suggest_stars():
             abort(500)
 
     db.level.update_one({"_id": level_id}, {"$set": query_level})
+
+    level_name = db.level.find_one({"_id": level_id})["name"]
+    builder_id = db.level.find_one({"_id": level_id})["account_id"]
+    builder_name = db.account.find_one({"_id": builder_id})["username"]
+
+    mod_name = db.account.find_one({"_id": account_id})["username"]
+
+    plugin_manager.call_event(
+        "on_level_rate",
+        level_id, level_name, builder_id, builder_name, account_id, mod_name,
+        role_id, True if access == 1 else False, stars, featured
+    )
 
     return "1"

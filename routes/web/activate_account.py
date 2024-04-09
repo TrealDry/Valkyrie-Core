@@ -11,6 +11,7 @@ from utils.hcaptcha import hcaptcha
 from utils.redis_db import client as rd
 from utils.passwd import check_password
 from utils.request_get import request_get
+from utils.plugin_manager import plugin_manager
 
 
 @web.route("/activate_account", methods=("POST", "GET"))
@@ -64,16 +65,18 @@ def activate_account():
                 message = "Wrong password!"
                 raise
 
+            username = db.account.find_one({"_id": account_id})["username"]
+
             sample_account_stat = {
-                "_id": account_id, "username": db.account.find_one({"_id": account_id})["username"],
-                "stars": 0, "moons": 0, "demons": 0, "diamonds": 0, "user_coins": 0, "secret_coins": 0,
-                "creator_points": 0, "first_color": 0, "second_color": 3, "third_color": -1, "icon_id": 1,
-                "icon_type": 0, "icon_cube": 1, "icon_ship": 1, "icon_ball": 1, "icon_ufo": 1, "icon_wave": 1,
-                "icon_robot": 1, "icon_spider": 1, "icon_glow": 0, "icon_swing_copter": 1, "icon_jetpack": 1,
-                "missed_messages": 0, "friend_requests": 0, "message_state": 0, "friends_state": 0,
-                "comment_history_state": 0, "youtube": "", "twitter": "", "twitch": "", "global_rank": 0,
-                "is_banned": 0, "is_top_banned": 0, "prefix": "", "comment_color": "", "mod_badge": 0, "vip_status": 0,
-                "small_chest_time": 0, "big_chest_time": 0, "small_chest_counter": 0, "big_chest_counter": 0
+                "_id": account_id, "username": username, "stars": 0, "moons": 0, "demons": 0, "diamonds": 0,
+                "user_coins": 0, "secret_coins": 0, "creator_points": 0, "first_color": 0, "second_color": 3,
+                "third_color": -1, "icon_id": 1, "icon_type": 0, "icon_cube": 1, "icon_ship": 1, "icon_ball": 1,
+                "icon_ufo": 1, "icon_wave": 1, "icon_robot": 1, "icon_spider": 1, "icon_glow": 0,
+                "icon_swing_copter": 1, "icon_jetpack": 1, "missed_messages": 0, "friend_requests": 0,
+                "message_state": 0, "friends_state": 0, "comment_history_state": 0, "youtube": "", "twitter": "",
+                "twitch": "", "global_rank": 0, "is_banned": 0, "is_top_banned": 0, "prefix": "",
+                "comment_color": "", "mod_badge": 0, "vip_status": 0, "small_chest_time": 0, "big_chest_time": 0,
+                "small_chest_counter": 0, "big_chest_counter": 0
             }
 
             db.account.update_one({"_id": account_id}, {"$set": {"is_valid": 1}})
@@ -81,6 +84,8 @@ def activate_account():
 
             if ACCOUNTS_ACTIVATION_VIA_MAIL:
                 rd.delete(f"{REDIS_PREFIX}:{code}:confirm")
+
+            plugin_manager.call_event("on_player_activate", account_id, username)
 
             return "Account verified!"
         else:

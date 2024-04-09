@@ -6,6 +6,7 @@ from utils import database as db
 
 from utils.passwd import check_password
 from utils.check_secret import check_secret
+from utils.plugin_manager import plugin_manager
 from utils.request_get import request_get, get_ip
 
 
@@ -50,7 +51,7 @@ def like_item():
             coll = db.level_comment
         case 3:  # Комментарий на аккаунте
             coll = db.account_comment
-        case 4:  # Лит уровней
+        case 4:  # Лист уровней
             coll = db.level_list
         case _:
             return "1"
@@ -77,5 +78,9 @@ def like_item():
     }
 
     db.action_like.insert_one(sample_action_like)
+
+    plugin_manager.call_event(
+        "on_like_item", account_id, item_id, item_type, True if like == 1 else False
+    )
 
     return "1"

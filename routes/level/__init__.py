@@ -8,6 +8,7 @@ from .get_level import *
 from .rate_demon import *
 from .rate_stars import *
 from .update_desc import *
+from .report_level import *
 from .delete_level import *
 from .upload_level import *
 from .suggest_stars import *
