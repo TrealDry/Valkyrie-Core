@@ -18,7 +18,7 @@ class PluginManager:
         self._plugin_methods = self.__init_plugin_methods()
 
     def start(self):
-        self._auto_load_plugins()
+        self.__auto_load_plugins()
 
     @staticmethod
     def __init_plugin_methods() -> dict:
@@ -107,7 +107,7 @@ class PluginManager:
         plugin_module_name = plugin_path[2:].replace(os.sep, ".")
         plugin_module = importlib.import_module(plugin_module_name)
 
-        plugin_object = plugin_module.get_plugin()
+        plugin_object = plugin_module.get_plugin(self)
         plugin_name = plugin_object.plugin_name
 
         result = self.__init_plugin(plugin_object)
@@ -133,7 +133,13 @@ class PluginManager:
         result = self.load_plugin(plugin_path)
         return bool(result)
 
-    def _auto_load_plugins(self):
+    def get_plugin_space(self) -> dict:
+        return self._plugin_space
+
+    def get_plugin_path(self) -> dict:
+        return self._plugin_methods
+
+    def __auto_load_plugins(self):
         plugin_collections = list(filter(
             os.path.isdir, list(map(lambda x: os.path.join(self.main_folder, x), os.listdir(self.main_folder)))
         ))
