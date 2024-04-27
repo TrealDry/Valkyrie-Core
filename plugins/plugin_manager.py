@@ -10,7 +10,19 @@ colorama.init()
 
 
 class PluginManager:
-    def __init__(self):
+
+    def __new__(cls):
+        it = cls.__dict__.get("__it__")
+
+        if it is not None:
+            return it
+
+        cls.__it__ = it = object.__new__(cls)
+        it.init()
+
+        return it
+
+    def init(self):
         self.main_folder = os.path.join(".", "plugins")
 
         self._plugin_space = {}  # Ключ: имя плагина, значение: объект
@@ -107,7 +119,7 @@ class PluginManager:
         plugin_module_name = plugin_path[2:].replace(os.sep, ".")
         plugin_module = importlib.import_module(plugin_module_name)
 
-        plugin_object = plugin_module.get_plugin(self)
+        plugin_object = plugin_module.get_plugin()
         plugin_name = plugin_object.plugin_name
 
         result = self.__init_plugin(plugin_object)
