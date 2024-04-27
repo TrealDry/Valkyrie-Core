@@ -1,12 +1,14 @@
 from plugins.plugin import Plugin
+from plugins.plugin_manager import PluginManager
 
 
-def get_plugin(plugin_manager: object) -> object:
-    return TestPlugin(plugin_manager)
+def get_plugin() -> object:
+    return TestPlugin()
 
 
 class TestPlugin(Plugin):
     plugin_name: str = "vcore_test_plugin"
+    plugin_manager: PluginManager = PluginManager()
 
     def plugin_init(self) -> bool:
         print("Test plugin load...")
