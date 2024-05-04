@@ -203,6 +203,7 @@ def get_level():
                 sort = [("_id", DESCENDING)]
 
             case 10:  # Вкладка Map packs
+                sort = []
                 level_ids = search.split(",")
                 query = {
                     "_id": {"$in": list(map(int_conv, level_ids))},
@@ -310,8 +311,10 @@ def get_level():
     if sort:
         levels.sort(sort)
 
-    if not bool(query["$or"]):
+    try:
         del query["$or"]
+    except KeyError:
+        pass
 
     levels = tuple(levels)
     response = ""
