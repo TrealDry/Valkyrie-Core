@@ -40,4 +40,4 @@ Backward compatibility with: *2.1*
 ---
 
 ### Contacts for communication | Контакты для связи
-> Discord: masaddox
+> Discord: trealdry
