@@ -76,7 +76,13 @@ def activate_account():
                 "message_state": 0, "friends_state": 0, "comment_history_state": 0, "youtube": "", "twitter": "",
                 "twitch": "", "global_rank": 0, "is_banned": 0, "is_top_banned": 0, "prefix": "",
                 "comment_color": "", "mod_badge": 0, "vip_status": 0, "small_chest_time": 0, "big_chest_time": 0,
-                "small_chest_counter": 0, "big_chest_counter": 0
+                "small_chest_counter": 0, "big_chest_counter": 0, "level_statistics": {
+                    "daily_level": 0, "gauntlet_level": 0, "demon_ids": [], "weekly_demon": 0,
+                    "gauntlet_demon": 0, "auto_classic": 0, "easy_classic": 0, "normal_classic": 0,
+                    "hard_classic": 0, "harder_classic": 0, "insane_classic": 0, "auto_platformer": 0,
+                    "easy_platformer": 0, "normal_platformer": 0, "hard_platformer": 0,
+                    "harder_platformer": 0, "insane_platformer": 0
+                }
             }
 
             db.account.update_one({"_id": account_id}, {"$set": {"is_valid": 1}})

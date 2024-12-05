@@ -1,9 +1,11 @@
 from . import user
+from math import inf
 from icecream import ic
 from config import PATH_TO_DATABASE
 
 from utils import database as db
 
+from utils.endpoint_logging import logging
 from utils.passwd import check_password
 from utils.request_get import request_get
 from utils.check_secret import check_secret
@@ -20,7 +22,7 @@ ENG: Be sure to change the limits as your private server grows!
 LIMIT = {
     "stars": 2500,
     "moons": 2500,
-    "demons": 500,
+    "demons": 250,
     "diamonds": 999_999_999,
     "user_coins": 1000,
     "secret_coins": 100,
@@ -107,11 +109,27 @@ def update_user_score():
     second_color = request_get("color2", "int")    # 41  : 107
     third_color = 0
 
+    demon_info = []
+    demon_info_weekly = 0
+    demon_info_gauntlet = 0
+
+    level_info = [0] * 12
+    level_info_daily = 0
+    level_info_gauntlet = 0
+
     if gd_version == 22:
         moons = request_get("moons", "int")
         third_color = request_get("color3", "int")          # 107
         icon_swing_copter = request_get("accSwing", "int")  # 43
         icon_jetpack = request_get("accJetpack", "int")     # 5
+
+        demon_info = request_get("dinfo", "list_int")
+        demon_info_weekly = request_get("dinfow", "int")
+        demon_info_gauntlet = request_get("dinfog", "int")
+
+        level_info = request_get("sinfo", "list_int")
+        level_info_daily = request_get("sinfod", "int")
+        level_info_gauntlet = request_get("sinfog", "int")
 
     # == Проверка лимитов ==
 
@@ -132,6 +150,17 @@ def update_user_score():
         (1, icon_swing_copter, LIMIT[i_ver]["icon_swing_copter"]), (1, icon_jetpack, LIMIT[i_ver]["icon_jetpack"]),
         (0, icon_glow, LIMIT[i_ver]["icon_glow"]), (0, first_color, LIMIT[i_ver]["first_color"]),
         (0, second_color, LIMIT[i_ver]["second_color"]), (-1, third_color, LIMIT[i_ver]["third_color"])
+    ):
+        return "-1"
+
+    if not limit_check(  # TODO Заменить INF заглушку
+        (demon_info_weekly, inf), (demon_info_gauntlet, inf),
+            (level_info_daily, inf), (level_info_gauntlet, inf),
+            *list(zip(
+                level_info + demon_info, [
+                    inf for _ in range(len(level_info) + len(demon_info))
+                ]
+            ))
     ):
         return "-1"
 
@@ -160,7 +189,26 @@ def update_user_score():
         "icon_glow": icon_glow,
         "first_color": first_color,
         "second_color": second_color,
-        "third_color": third_color
+        "third_color": third_color,
+        "level_statistics": {
+            "daily_level": level_info_daily,
+            "gauntlet_level": level_info_gauntlet,
+            "demon_ids": demon_info,
+            "weekly_demon": demon_info_weekly,
+            "gauntlet_demon": demon_info_weekly,
+            "auto_classic": level_info[0],
+            "easy_classic": level_info[1],
+            "normal_classic": level_info[2],
+            "hard_classic": level_info[3],
+            "harder_classic": level_info[4],
+            "insane_classic": level_info[5],
+            "auto_platformer": level_info[6],
+            "easy_platformer": level_info[7],
+            "normal_platformer": level_info[8],
+            "hard_platformer": level_info[9],
+            "harder_platformer": level_info[10],
+            "insane_platformer": level_info[11]
+        }
     }})
 
     plugin_manager.call_event(
@@ -183,4 +231,5 @@ def update_user_score():
         }
     )
 
+    logging("debug")
     return str(account_id)

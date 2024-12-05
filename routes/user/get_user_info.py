@@ -78,6 +78,34 @@ def get_user_info():
             38: account_stat_info[0]["missed_messages"], 39: account_stat_info[0]["friend_requests"], 40: 0
         })
 
+    # TODO Сделать нормальный подсчёт демонов
+    level_stats = account_stat_info[0]["level_statistics"]
+
+    demons = ",".join([
+        "0", "0", str(len(level_stats["demon_ids"])), "0", "0",
+        "0", "0", "0", "0", "0", str(level_stats["weekly_demon"]),
+        str(level_stats["gauntlet_demon"])
+    ])
+
+    classic_levels = ",".join([
+        str(i) for i in [
+            level_stats["auto_classic"],  level_stats["easy_classic"],  level_stats["normal_classic"],
+            level_stats["hard_classic"],  level_stats["harder_classic"],  level_stats["insane_classic"],
+            level_stats["daily_level"], level_stats["gauntlet_level"]
+        ]
+    ])
+
+    platformer_levels = ",".join([
+        str(i) for i in [
+            level_stats["auto_platformer"], level_stats["easy_platformer"], level_stats["normal_platformer"],
+            level_stats["hard_platformer"], level_stats["harder_platformer"], level_stats["insane_platformer"]
+        ]
+    ])
+
+    response.update({
+        55: demons, 56: classic_levels, 57: platformer_levels
+    })
+
     response.update({
         29: 1
     })
