@@ -1,5 +1,6 @@
 from time import time
 from . import level_pack
+from loguru import logger
 from config import PATH_TO_DATABASE
 
 from utils import database as db
@@ -19,6 +20,7 @@ def upload_level_list():
     if not check_secret(
         request_get("secret"), 1
     ):
+        logger.debug(f"Секретный ключ не совпал ({request_get("secret")})")
         return "-100"
 
     account_id = request_get("accountID", "int")
@@ -27,6 +29,7 @@ def upload_level_list():
     if not check_password(
         account_id, password, is_gjp=False, is_gjp2=True
     ):
+        logger.debug(f"Пароль не совпал ({account_id})")
         return "-1"
 
     list_id = request_get("listID", "int")
@@ -38,6 +41,7 @@ def upload_level_list():
     list_levels = request_get("listLevels", "list_int")
 
     if not bool(list_levels):
+        logger.debug("Лист уровней пустой")
         return "-6"
 
     difficulty = request_get("difficulty", "int")  # -1 NA, 0 Auto, 1 Easy
@@ -52,18 +56,34 @@ def upload_level_list():
         (1, len(list_name), 25), (0, len(base64_decode(list_desc)), 300), (1, len(list_levels), 75),
         (-1, difficulty, 10), (0, original, 99_999_999)
     ):
+        logger.info(f"Лист не подходит под критерии защиты ({account_id})")
+        logger.info("Подробная информация: " + "; ".join(
+            [f"{i}={j}" for i, j in {
+                "list_name_len": len(list_name),
+                "list_desc_len": len(base64_decode(list_desc)),
+                "list_levels": list_levels,
+                "list_levels_len": len(list_levels),
+                "difficulty": difficulty,
+                "original_id": original
+            }.items()]
+        ))
         return "-1"
 
     if list_id != 0:
+        logger.debug("Обновление листа")
+
         if db.level_list.count_documents({
             "_id": list_id, "account_id": account_id, "is_deleted": 0
         }) == 0:
+            logger.info("Листа для обновления не существует!")
             return "-1"
 
         if not request_limiter(
             db.level_list, {"account_id": account_id},
             date="update_time", limit_time=300
         ):
+            logger.info(f"Пользователь не может обновить лист, "
+                        f"раньше чем через 5 минут ({account_id})")
             return "-1"
 
         version = db.level_list.find_one({"_id": list_id})["version"]
@@ -76,12 +96,16 @@ def upload_level_list():
             "update_time": int(time())
         }})
 
+        logger.success(f"Пользователь удачно обновил лист ({account_id}, {list_id})!")
+
         return str(list_id)
 
     if not request_limiter(
         db.level_list, {"account_id": account_id},
         limit_time=300
     ):
+        logger.info(f"Пользователь не может выложить новый лист, "
+                    f"раньше чем через 5 минут ({account_id})")
         return "-1"
 
     list_id = last_id(db.level_list)
@@ -94,4 +118,5 @@ def upload_level_list():
         "rate_time": 0, "original": original, "unlisted": unlisted, "friend_only": friend_only, "is_deleted": 0
     })
 
+    logger.success(f"Пользователь удачно выложил лист ({account_id}, {list_id})!")
     return str(list_id)

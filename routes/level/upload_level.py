@@ -3,6 +3,7 @@ from . import level
 from time import time
 from os.path import join
 from sys import getsizeof
+from loguru import logger
 from config import PATH_TO_DATABASE, PATH_TO_ROOT
 
 from utils import database as db
@@ -30,6 +31,7 @@ def upload_level():
     if not check_secret(
         request_get("secret"), 1
     ):
+        logger.debug(f"Секретный ключ не совпал ({request_get("secret")})")
         return "-1"
 
     account_id = request_get("accountID", "int")
@@ -44,6 +46,8 @@ def upload_level():
     if not check_password(
         account_id, password, is_gjp=not is_gjp2, is_gjp2=is_gjp2
     ):
+        if account_id <= 0: logger.info("Пользователя не существует")
+        else: logger.info(f"Неправильный пароль у пользователя ({account_id})")
         return "-1"
 
     level_name = char_clean(request_get("levelName"))
@@ -77,9 +81,12 @@ def upload_level():
         friend_only = 0
 
     if getsizeof(level_string) > MAXIMUM_LEVEL_SIZE:
+        logger.info(f"Пользователь превысил лимит блоков ({account_id})")
         return "-1"
 
     if len(level_name) == 0 or len(level_string) == 0:
+        logger.info(f"Некорректное имя уровня или levelstring "
+                    f"({account_id}, name={len(level_name)}, level_string={len(level_string)})")
         return "-1"
 
     if not limit_check(
@@ -87,14 +94,31 @@ def upload_level():
         (len(base64_decode(level_desc)), 180 if gd_version >= 22 else 140), (two_player, 1),
         (unlisted, 2 if gd_version >= 22 else 1), (len(str(original)), 12), (coins, 3), (ldm, 1), (len(level_name), 20)
     ):
+        logger.info(f"Уровень не подходит под критерии защиты ({account_id})")
+        logger.info("Подробная информация: " + "; ".join(
+            [f"{i}={j}" for i, j in {
+                "gd_version": gd_version,
+                "level_name_len": len(level_name),
+                "level_length": level_length,
+                "level_desc_len": len(base64_decode(level_desc)),
+                "two_player": two_player,
+                "unlisted": unlisted,
+                "original_id": len(str(original)),
+                "coins": coins,
+                "ldm": ldm,
+            }.items()]
+        ))
         return "-1"
 
     if limit_check((objects, MINIMUM_NUMBER_BLOCKS)) or objects <= 0:
+        logger.info(f"Уровень не проходит по критерии минимального кол-во блоков "
+                    f"({account_id}, {objects})")
         return "-1"
 
     if db.song.count_documents({
         "_id": song_id
     }) == 0 and song_id != 0:
+        logger.info(f"Музыки под id {song_id} не существует ({account_id})")
         return "-1"
 
     is_official_song = 1 if song_id <= 0 else 0
@@ -105,9 +129,13 @@ def upload_level():
     username = db.account.find_one({"_id": account_id})["username"]
 
     if level_id == 0:
+        logger.debug("Загрузка нового уровня на сервер")
+
         if not request_limiter(
             db.level, {"account_id": account_id}, limit_time=300
         ):
+            logger.info(f"Пользователь не может выложить новый уровень, "
+                        f"раньше чем через 5 минут ({account_id})")
             return "-1"
 
         level_id = last_id(db.level)
@@ -136,6 +164,7 @@ def upload_level():
         db.level.insert_one(sample_level)
 
         plugin_manager.call_event("on_level_upload", level_id, level_name, account_id, username)
+        logger.success(f"Пользователь удачно загрузил новый уровень ({account_id}, {level_id})!")
 
         return str(level_id)
 
@@ -143,9 +172,13 @@ def upload_level():
         "_id": level_id, "account_id": account_id,
         "update_prohibition": 0, "is_deleted": 0
     }) == 1:
+        logger.debug(f"Обновление существующего уровня ({level_id})")
+
         if not request_limiter(
             db.level, {"_id": level_id, "account_id": account_id}, date="update_time", limit_time=300
         ):
+            logger.info(f"Пользователь не может обновить уровень, "
+                        f"раньше чем через 5 минут ({account_id})")
             return "-1"
 
         single_level = tuple(db.level.find({"_id": level_id}))
@@ -190,6 +223,7 @@ def upload_level():
         }})
 
         plugin_manager.call_event("on_level_update", level_id, level_version + 1, account_id, username)
+        logger.success(f"Пользователь удачно обновил уровень ({account_id}, {level_id})!")
 
         return str(level_id)
 

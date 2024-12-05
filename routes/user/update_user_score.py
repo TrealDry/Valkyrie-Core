@@ -231,5 +231,4 @@ def update_user_score():
         }
     )
 
-    logging("debug")
     return str(account_id)

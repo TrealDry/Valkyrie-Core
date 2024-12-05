@@ -30,8 +30,8 @@ def upload_comment():
         password = request_get("gjp2")
 
     if not check_password(
-            account_id, password,
-            is_gjp=not is_gjp2, is_gjp2=is_gjp2
+        account_id, password,
+        is_gjp=not is_gjp2, is_gjp2=is_gjp2
     ):
         return "-1"
 

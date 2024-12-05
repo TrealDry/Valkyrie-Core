@@ -1,7 +1,7 @@
-import logging
 from . import web
 from time import time
 from os.path import join
+from loguru import logger
 from flask import request
 from hashlib import sha256
 from config import REDIS_PREFIX, PATH_TO_ROOT
@@ -23,31 +23,33 @@ CP_MYTHIC = 10
 
 @web.route("/cron/<task>", methods=("POST", "GET"))
 def cron(task):
+    logger.info("Начало работы cron!")
+
     if request.method != "POST":
+        logger.warning("Запрос не является POST!")
         return ""
 
     key = request_get("master_key")
 
     if key == "":
+        logger.warning("Ключ пустой!")
         return ""
 
     if db.master_key.count_documents({
         "key": sha256(key.encode("utf-8")).hexdigest(),
         "comment": "for cron"
     }) == 0:
+        logger.warning("Ключ не был обнаружен!")
         return ""
 
     if task == "gd":
-
-        logging.basicConfig(
-            level=logging.INFO,
-            filename=join(PATH_TO_ROOT, "data", "log", f"{int(time())}_cron_gd.log"),
-            filemode="w"
-        )
+        logger.info("Тип таска был выбран 'gd'")
 
         """ Выдача creator points """
 
         creator_list = {}
+        creator_logs = ""
+
         levels = tuple(db.level.find({"stars": {"$gt": 0}}))
 
         for creator in db.account_stat.find({"creator_points": {"$gt": 0}}):
@@ -76,13 +78,14 @@ def cron(task):
                     creator_list[lvl["account_id"]] += CP_MYTHIC
 
             for creator in creator_list:
-                logging.info(f"{creator} - {creator_list[creator]} CP")
+                creator_logs += f"{creator} - {creator_list[creator]} CP; "
 
                 db.account_stat.update_one({"_id": creator}, {"$set": {
                     "creator_points": creator_list[creator]
                 }})
 
         upload_scores("creators")
+        logger.info(f"Статистика по креатор поинтам: {creator_logs}")
 
         del creator_list
 
@@ -142,17 +145,16 @@ def cron(task):
                 max_demons += level["demon"]
                 max_silver_coins += level["coins"] if level["is_silver_coins"] == 1 else 0
 
-        logging.info(
+        logger.info("Максимальное количество элементов статистики: "
             f"stars - {max_stars}; moons - {max_moons}; demons - {max_demons}; "
-            f"gold_coins - {max_gold_coins}; silver_coins - {max_silver_coins}"
-        )
+            f"gold_coins - {max_gold_coins}; silver_coins - {max_silver_coins}")
 
         for user in users:
             if not limit_check(
                 (user["stars"], max_stars), (user["moons"], max_moons), (user["demons"], max_demons),
                 (user["user_coins"], max_silver_coins), (user["secret_coins"], max_gold_coins)
             ):
-                logging.info(f"{user["_id"]} BANNED!")
+                logger.info(f"Пользователь {user["_id"]} был забанен!")
                 db.account_stat.update_one({"_id": user["_id"]}, {"$set": {
                     "is_top_banned": 1
                 }})
@@ -201,8 +203,8 @@ def cron(task):
 
             db.level.update_one({"_id": level["_id"]}, {"$set": {"rate_time": 0}})
 
-        logging.shutdown()
+        logger.success(f"Работа cron под таском '{task}' произведена успешно!")
         return "1"
 
     else:
-        return ""
+        logger.warning(f"Тип таска '{task}' не был обнаружен!")
