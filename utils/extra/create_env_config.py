@@ -7,7 +7,6 @@ env_body = ('MAIL_SERVER=""\n'
             'REDIS_HOST=""\n'
             'REDIS_PORT=""\n'
             'REDIS_PASSWORD=""\n'
-            'REDIS_PREFIX=""\n'
             'HCAPTCHA_SITE_KEY=""\n'
             'HCAPTCHA_SECRET_KEY=""\n')
 
