@@ -1,0 +1,4 @@
+{
+  "key": "",  // Random string + encrypt SHA256
+  "comment": "for cron"  // cron won't work without it
+}
