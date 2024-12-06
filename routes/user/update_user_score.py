@@ -1,13 +1,13 @@
 from . import user
 from math import inf
-from icecream import ic
+from loguru import logger
 from config import PATH_TO_DATABASE
 
 from utils import database as db
 
-from utils.endpoint_logging import logging
 from utils.passwd import check_password
 from utils.request_get import request_get
+from utils.demon_dict import get_demon_dict
 from utils.check_secret import check_secret
 from utils.check_version import check_version
 from utils.plugin_manager import plugin_manager
@@ -69,6 +69,7 @@ def update_user_score():
     if not check_secret(
         request_get("secret"), 1
     ):
+        logger.debug(f"Секретный ключ не совпал ({request_get("secret")})")
         return "-1"
 
     account_id = request_get("accountID", "int")
@@ -84,6 +85,7 @@ def update_user_score():
     if not check_password(
         account_id, password, is_gjp=not is_gjp2, is_gjp2=is_gjp2
     ):
+        logger.debug("Пароль не подошёл (или не существует аккаунт)")
         return "-1"
 
     start = request_get("stars", "int")
@@ -123,7 +125,7 @@ def update_user_score():
         icon_swing_copter = request_get("accSwing", "int")  # 43
         icon_jetpack = request_get("accJetpack", "int")     # 5
 
-        demon_info = request_get("dinfo", "list_int")
+        demon_info = list(set(request_get("dinfo", "list_int")))
         demon_info_weekly = request_get("dinfow", "int")
         demon_info_gauntlet = request_get("dinfog", "int")
 
@@ -139,6 +141,9 @@ def update_user_score():
         (start, LIMIT["stars"]), (moons, LIMIT["moons"]), (demons, LIMIT["demons"]),
         (diamonds, LIMIT["diamonds"]), (user_coins, LIMIT["user_coins"]), (secret_coins, LIMIT["secret_coins"])
     ):
+        logger.warning(f"Пользователь превысил лимиты "
+                    f"({account_id}, {start}, {moons}, {demons},"
+                    f" {diamonds}, {user_coins}, {secret_coins})")
         return "-1"
 
     if not new_limit_check(  # Иконки и цвета
@@ -153,15 +158,40 @@ def update_user_score():
     ):
         return "-1"
 
-    if not limit_check(  # TODO Заменить INF заглушку
-        (demon_info_weekly, inf), (demon_info_gauntlet, inf),
-            (level_info_daily, inf), (level_info_gauntlet, inf),
+    if not limit_check(  # Игровая статистика 2
+        (demon_info_weekly, demons), (demon_info_gauntlet, demons),
+            (level_info_daily, 999_999), (level_info_gauntlet, 999_999),
             *list(zip(
                 level_info + demon_info, [
                     inf for _ in range(len(level_info) + len(demon_info))
                 ]
             ))
     ):
+        logger.warning(f"Пользователь превысил лимиты (level_stats) "
+                       f"({account_id})")
+        return "-1"
+
+    # == Проверка на демоны ==
+
+    demon_dict = get_demon_dict()
+    clear_demon_list = demon_info.copy()
+
+    logger.debug(f"demon_info={demon_info}")
+    logger.debug(f"c_d_l={clear_demon_list}")
+
+    for level_id in demon_info:
+        try:
+            if demon_dict[level_id][0] is not None:
+                continue
+        except KeyError:
+            clear_demon_list.remove(level_id)
+            continue
+
+    logger.debug(f"demon_dict={demon_dict} | clear_demon_list={clear_demon_list}")
+
+    if len(clear_demon_list) > demons * 3:  # normal demon + weekly demon + gauntlet demon
+        logger.warning(f"Пользователь превысил количество демонов "
+                    f"({account_id}, {len(clear_demon_list)}, {demons} * 3)")
         return "-1"
 
     # == Никогда не доверяй вводу пользователей ==

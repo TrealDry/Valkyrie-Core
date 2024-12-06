@@ -5,6 +5,7 @@ from utils import database as db
 
 from utils.passwd import check_password
 from utils.request_get import request_get
+from utils.demon_dict import get_demon_dict
 from utils.check_secret import check_secret
 from utils.response_processing import resp_proc
 
@@ -78,14 +79,24 @@ def get_user_info():
             38: account_stat_info[0]["missed_messages"], 39: account_stat_info[0]["friend_requests"], 40: 0
         })
 
-    # TODO Сделать нормальный подсчёт демонов
-    level_stats = account_stat_info[0]["level_statistics"]
+    # == level stats ==
 
-    demons = ",".join([
-        "0", "0", str(len(level_stats["demon_ids"])), "0", "0",
-        "0", "0", "0", "0", "0", str(level_stats["weekly_demon"]),
-        str(level_stats["gauntlet_demon"])
-    ])
+    level_stats = account_stat_info[0]["level_statistics"]
+    demon_dict = get_demon_dict()
+
+    correct_keys = list(
+        set(level_stats["demon_ids"]) & set(demon_dict.keys())
+    )
+
+    demon_list = [0] * 10 + [str(level_stats["weekly_demon"]),
+                             str(level_stats["gauntlet_demon"])]
+
+    for key in correct_keys:
+        item = demon_dict[key]
+        index = (item[0] - 1) + 5 if item[1] == 1 else item[0] - 1
+        demon_list[index] += 1
+
+    demon_string = ",".join(list(map(str, demon_list)))
 
     classic_levels = ",".join([
         str(i) for i in [
@@ -103,8 +114,10 @@ def get_user_info():
     ])
 
     response.update({
-        55: demons, 56: classic_levels, 57: platformer_levels
+        55: demon_string, 56: classic_levels, 57: platformer_levels
     })
+
+    # == ==
 
     response.update({
         29: 1

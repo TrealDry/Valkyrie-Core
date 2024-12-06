@@ -21,6 +21,22 @@ CP_LEGENDARY = 6
 CP_MYTHIC = 10
 
 
+def update_demon_list(levels=None):
+    if levels is None:
+        levels = tuple(db.level.find({"stars": {"$gt": 0}}))
+
+    demon_levels = [i for i in levels if i["demon"] == 1]
+    demon_levels_string = ";".join(
+        list(map(  # level_id - demon_type - is platformer
+            lambda x: f"{x["_id"]}-{x["demon_type"]}-{1 if x["length"] == 5 else 0}",
+            demon_levels
+        ))
+    )
+
+    rd.set(f"{REDIS_PREFIX}:all_demons", demon_levels_string)
+    return True
+
+
 @web.route("/cron/<task>", methods=("POST", "GET"))
 def cron(task):
     logger.info("Начало работы cron!")
@@ -88,6 +104,11 @@ def cron(task):
         logger.info(f"Статистика по креатор поинтам: {creator_logs}")
 
         del creator_list
+        del creator_logs
+
+        """ Подсчёт всех демонов """
+
+        update_demon_list(levels)
 
         """ Античит """
 
