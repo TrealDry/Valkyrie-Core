@@ -66,8 +66,13 @@ def download_level():
     is_featured = False
 
     if level_id < 0:  # Daily and Weekly
-        type_daily = 0 if level_id == -1 else 1  # 0 = daily, 1 = weekly
-        time_limit = 86400 if type_daily == 0 else 604800
+        match level_id:
+            case -1: type_daily = 0  # daily
+            case -2: type_daily = 1  # weekly
+            case -3: type_daily = 2  # event
+            case _:  return "-1"
+
+        time_limit = 604800 if type_daily == 1 else 86400
 
         time_now = int(time())
 
@@ -82,7 +87,10 @@ def download_level():
         level_id = daily_level[0]["level_id"]
         featured_id = daily_level[0]["daily_id"]
 
-        featured_id = featured_id if type_daily == 0 else featured_id + 100001
+        match type_daily:
+            case 1: featured_id += 100001
+            case 2: featured_id += 200001
+
         is_featured = True
 
     elif level_id == 0:

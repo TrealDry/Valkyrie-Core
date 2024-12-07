@@ -233,12 +233,16 @@ def get_level():
                 sort = [("rate_time", DESCENDING)]
                 query["epic"] = 1
 
-            case 21:  # Хранилище Daily
+            case 21 | 22 | 23:  # Хранилище Daily, Weekly и Event
+                type_daily = 0
+                if int(type_pack) == 22:   type_daily = 1
+                elif int(type_pack) == 23: type_daily = 2
+
                 time_now = int(time())
 
                 daily_levels = list(db.daily_level.find({
                     "timestamp": {"$lte": time_now},
-                    "type_daily": 0
+                    "type_daily": type_daily
                 }).sort([("timestamp", DESCENDING)]))[:-1]
 
                 try:
@@ -247,24 +251,6 @@ def get_level():
                     return "-1"
 
                 query["_id"] = {"$in": daily_level_ids}
-
-            case 22:  # Хранилище Weekly
-                time_now = int(time())
-
-                daily_levels = list(db.daily_level.find({
-                    "timestamp": {"$lte": time_now},
-                    "type_daily": 1
-                }).sort([("timestamp", DESCENDING)]))[:-1]
-
-                try:
-                    daily_level_ids = [i["level_id"] for i in daily_levels]
-                except IndexError:
-                    return "-1"
-
-                query["_id"] = {"$in": daily_level_ids}
-
-            case 23:  # Хранилище событий
-                return "-1"
 
             case 25:  # Лист уровней
                 try:
