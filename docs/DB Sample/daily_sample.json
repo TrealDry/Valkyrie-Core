@@ -1,6 +1,9 @@
 {
   "daily_id": 1,
-  "type_daily": 0, // 0 = daily, 1 = weekly
+  "type_daily": 0, // 0 = daily, 1 = weekly, 2 = event
   "level_id": 1,
+  "chest_type": 1,  // 1 = small, 2 = big (for event)
+                    // big for icon reward or many ( >= 2 ) rewards
+  "rewards": "",  // read RewardsForEventAndNewVault.md (for event)
   "timestamp": 0
 }
