@@ -115,12 +115,12 @@ def get_level():
             query["$or"].append(
                 {"epic": 1}
             )
-        if bool_chk(mythic):  # legendary
+        if bool_chk(legendary):
             query["$or"].append(
                 {"legendary": 1}
             )
-        if bool_chk(legendary):  # mythic
-            query["$or"].append(  # fix it 2.21
+        if bool_chk(mythic):
+            query["$or"].append(
                 {"mythic": 1}
             )
         if bool_chk(original):
