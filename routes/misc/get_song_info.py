@@ -7,6 +7,7 @@ from utils.request_get import request_get
 from utils.check_secret import check_secret
 from utils.response_processing import resp_proc
 
+import requests
 
 @misc.route(f"{PATH_TO_DATABASE}/getGJSongInfo.php", methods=("POST", "GET"))
 def get_song_info():
@@ -20,7 +21,7 @@ def get_song_info():
     if db.song.count_documents({
         "_id": song_id
     }) == 0:
-        return "-1"
+        return requests.post('http://www.boomlings.com/database/getGJSongInfo.php', data = {'secret': 'Wmfd2893gb7', 'songID': song_id}).text
 
     response = ""
 
