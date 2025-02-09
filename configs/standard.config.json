@@ -1,0 +1,60 @@
+{
+  "server_setts": {
+    "name": "Geometry Dash Example Server",
+    "discord_link": "https://discord.com/",
+
+    "domain": "https://example.com",
+
+    "path_to_api": "/api",
+    "path_to_song": "/song",
+    "path_to_database": "/database/db",
+
+    "command_prefix": "!",
+
+    "max_content_length": 52428800
+  },
+
+  "secret_setts": {
+    "accounts_activation_via_mail": false,
+
+    "mail": {
+      "ip": "",
+      "port": 0,
+      "username": "",
+      "password": ""
+    },
+
+    "mongo": {
+      "uri": "mongodb://mongo:27017",
+      "db_name": "vcore"
+    },
+
+    "redis": {
+      "ip": "localhost",
+      "port": 6379,
+      "password": "",
+      "prefix": "VCORE"
+    },
+
+    "hcaptcha": {
+      "site_key": "",
+      "secret_key": ""
+    }
+
+  },
+
+  "security_setts": {
+    "dislike_bot_protection": false
+  },
+
+  "debug_setts": {
+    "host": {
+      "ip": "0.0.0.0",
+      "port": 5000
+    },
+
+    "flask_debug": false,
+    "log_status": 0
+  }
+
+}
