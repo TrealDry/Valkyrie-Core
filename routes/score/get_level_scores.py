@@ -1,6 +1,5 @@
 from . import score
 from time import time
-from icecream import ic
 from config import PATH_TO_DATABASE
 from pymongo import DESCENDING, ASCENDING
 

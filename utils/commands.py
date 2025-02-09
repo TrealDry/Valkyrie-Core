@@ -2,7 +2,6 @@ import os
 from time import time
 from os.path import join
 
-from icecream import ic
 from pymongo import DESCENDING
 from datetime import datetime, timedelta
 from config import PATH_TO_ROOT, COMMAND_PREFIX

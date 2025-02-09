@@ -46,7 +46,7 @@ MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB max
 GD_SERVER_NAME = "Geometry Dash Private Server"
 DISCORD_SERVER_LINK = "https://discord.com/"
 
-DOMAIN = "https://127.0.0.1:5000"
+DOMAIN = "https://localhost:5000"
 
 PATH_TO_API = "/api"
 PATH_TO_ROOT = getcwd()
@@ -64,13 +64,13 @@ ACCOUNTS_ACTIVATION_VIA_MAIL = False
 MAIL_SERVER = env("MAIL_SERVER", str, "")  # only TLS
 MAIL_USERNAME = env("MAIL_USERNAME", str, "")
 MAIL_PASSWORD = env("MAIL_PASSWORD", str, "")
-MAIL_PORT = env("MAIL_PORT", int, 0)
+MAIL_PORT = env("MAIL_PORT", int, 27017)
 
-MONGO_URI = env("MONGO_URI", str, "")
-MONGO_NAME = env("MONGO_NAME", str, "")
+MONGO_URI = env("MONGO_URI", str, "mongodb://mongo:27017")
+MONGO_NAME = env("MONGO_NAME", str, "vcore")
 
-REDIS_HOST = env("REDIS_HOST", str, "")
-REDIS_PORT = env("REDIS_PORT", int, 0)
+REDIS_HOST = env("REDIS_HOST", str, "localhost")
+REDIS_PORT = env("REDIS_PORT", int, 6379)
 REDIS_PASSWORD = env("REDIS_PASSWORD", str, "")
 REDIS_PREFIX = "EUPH"
 
@@ -85,6 +85,8 @@ LOG_STATUS = 0  # 0 - выключить логирование
 # 1 - логирование только ошибок
 # 2 - логирование ошибок и предупреждений
 # 3 - логирование всего
+
+LOGURU_STATUS = 0
 
 PROTECTION_AGAINST_DISLIKE_BOTS = False  # включить её только в крайнем случае!!!
 # При True в like_item проходит проверка (только для уровней).
