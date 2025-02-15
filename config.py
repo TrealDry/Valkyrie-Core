@@ -1,98 +1,72 @@
-from dotenv import load_dotenv
-from os import getcwd, listdir, getenv
+from loguru import logger
+from os import getcwd, getenv
+from utils.load_config import LoadConfig, LoadConfigResponse as LCEnum
 
+conf_dict = dict()
+path_to_config = getenv("path_to_config")
 
-env_is_not_exist = True
+if not path_to_config:
+    logger.warning("Не указан путь к конфигу! Автоматически выбран standard.config.json.")
 
-for file in listdir(r"."):
-    if file == ".env":
-        load_dotenv()
-        env_is_not_exist = False
-        break
-    else:
-        continue
+load_status = LoadConfig.load_config(
+    path_to_config, conf_dict
+)
 
-
-def env(key, type_, default=None):
-    if env_is_not_exist:
-        return default
-
-    env_value = getenv(key)
-
-    if env_value is None:
-        print(f"КЛЮЧ {key} НЕ БЫЛ НАЙДЕЙ!")
-        return default
-
-    if type_ == str:
-        return env_value
-    elif type_ == int:
-        try:
-            return int(env_value)
-        except ValueError:
-            print(f"КЛЮЧ {key} НЕ МОЖЕТ БЫТЬ ПРЕОБРАЗОВАН В INT!")
-            return default
-    else:
-        return env_value
-
+match load_status:
+    case LCEnum.DONE:            logger.debug(f"Файл конфигурации загружен успешно! path={path_to_config}")
+    case LCEnum.FILE_NOT_FOUND:  logger.critical(f"Файл конфига не был найден! path={path_to_config}");         raise Exception
+    case LCEnum.STRUCTURE_ERROR: logger.critical(f"Структура конфига повреждена! path={path_to_config}");       raise Exception
+    case LCEnum.UNKNOWN_ERROR:   logger.critical(f"Неизвестная ошибка! Проверьте файл! path={path_to_config}"); raise Exception
 
 # == Server settings ==
 
-IP = "0.0.0.0"
-PORT = "80"
-DEBUG = False
+GD_SERVER_NAME      = conf_dict["server_setts_name"]
+DISCORD_SERVER_LINK = conf_dict["server_setts_discord_link"]
 
-MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB max
+DOMAIN              = conf_dict["server_setts_domain"]
 
-GD_SERVER_NAME = "Geometry Dash Private Server"
-DISCORD_SERVER_LINK = "https://discord.com/"
+PATH_TO_API         = conf_dict["server_setts_path_to_api"]
+PATH_TO_ROOT        = getcwd()
+PATH_TO_SONG        = conf_dict["server_setts_path_to_song"]
+PATH_TO_DATABASE    = conf_dict["server_setts_path_to_database"]
 
-DOMAIN = "https://localhost:5000"
+COMMAND_PREFIX      = conf_dict["server_setts_command_prefix"]
 
-PATH_TO_API = "/api"
-PATH_TO_ROOT = getcwd()
-PATH_TO_SONG = DOMAIN + "/song"
-PATH_TO_DATABASE = "/database/db"
-
-COMMAND_PREFIX = "!"
+MAX_CONTENT_LENGTH  = conf_dict["server_setts_max_content_length"]
 
 # == ==
 
 # == Secret settings ==
 
-ACCOUNTS_ACTIVATION_VIA_MAIL = False
+MAIL_SERVER   = conf_dict["secret_setts_mail_ip"]
+MAIL_USERNAME = conf_dict["secret_setts_mail_username"]
+MAIL_PASSWORD = conf_dict["secret_setts_mail_password"]
+MAIL_PORT     = conf_dict["secret_setts_mail_port"]
 
-MAIL_SERVER = env("MAIL_SERVER", str, "")  # only TLS
-MAIL_USERNAME = env("MAIL_USERNAME", str, "")
-MAIL_PASSWORD = env("MAIL_PASSWORD", str, "")
-MAIL_PORT = env("MAIL_PORT", int, 27017)
+MONGO_URI     = conf_dict["secret_setts_mongo_uri"]
+MONGO_NAME    = conf_dict["secret_setts_mongo_db_name"]
 
-MONGO_URI = env("MONGO_URI", str, "mongodb://mongo:27017")
-MONGO_NAME = env("MONGO_NAME", str, "vcore")
+REDIS_HOST     = conf_dict["secret_setts_redis_ip"]
+REDIS_PORT     = conf_dict["secret_setts_redis_port"]
+REDIS_PASSWORD = conf_dict["secret_setts_redis_password"]
+REDIS_PREFIX   = conf_dict["secret_setts_redis_prefix"]
 
-REDIS_HOST = env("REDIS_HOST", str, "localhost")
-REDIS_PORT = env("REDIS_PORT", int, 6379)
-REDIS_PASSWORD = env("REDIS_PASSWORD", str, "")
-REDIS_PREFIX = "EUPH"
-
-HCAPTCHA_SITE_KEY = env("HCAPTCHA_SITE_KEY", str, "")
-HCAPTCHA_SECRET_KEY = env("HCAPTCHA_SECRET_KEY", str, "")
+HCAPTCHA_SITE_KEY   = conf_dict["secret_setts_hcaptcha_site_key"]
+HCAPTCHA_SECRET_KEY = conf_dict["secret_setts_hcaptcha_secret_key"]
 
 # == ==
 
 # == Security settings ==
 
-LOG_STATUS = 0  # 0 - выключить логирование
-# 1 - логирование только ошибок
-# 2 - логирование ошибок и предупреждений
-# 3 - логирование всего
+ACCOUNTS_ACTIVATION_VIA_MAIL    = conf_dict["security_setts_accounts_activation_via_mail"]
+PROTECTION_AGAINST_DISLIKE_BOTS = conf_dict["security_setts_dislike_bot_protection"]
 
-LOGURU_STATUS = 0
+# == ==
 
-PROTECTION_AGAINST_DISLIKE_BOTS = False  # включить её только в крайнем случае!!!
-# При True в like_item проходит проверка (только для уровней).
-# Если уровень не был ранее загружен пользователем, то не изменять счётчик лайков.
+# == Debug settings ==
 
-DISCORD_CONFIRMATION = False  # В некоторых эндпоитнах (напр. Добавление музыки)
-# Будет требоваться привязка дискорд аккаунта к гд аккаунту
+IP    = conf_dict["debug_setts_host_ip"]
+PORT  = conf_dict["debug_setts_host_port"]
+DEBUG = conf_dict["debug_setts_flask_debug"]
 
 # == ==

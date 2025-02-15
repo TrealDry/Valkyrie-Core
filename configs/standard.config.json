@@ -15,8 +15,6 @@
   },
 
   "secret_setts": {
-    "accounts_activation_via_mail": false,
-
     "mail": {
       "ip": "",
       "port": 0,
@@ -44,6 +42,7 @@
   },
 
   "security_setts": {
+    "accounts_activation_via_mail": false,
     "dislike_bot_protection": false
   },
 
@@ -53,8 +52,7 @@
       "port": 5000
     },
 
-    "flask_debug": false,
-    "log_status": 0
+    "flask_debug": false
   }
 
 }

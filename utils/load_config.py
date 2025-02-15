@@ -1,47 +1,40 @@
 import json
 from enum import Enum
-from flask import Flask
 
 
 class LoadConfigResponse(Enum):
     DONE             = 0
     FILE_NOT_FOUND   = 1
     STRUCTURE_ERROR  = 2
-
+    UNKNOWN_ERROR    = 3
 
 class LoadConfig:
-    rule_exceptions = {
-        "server_setts_max_content_length": "MAX_CONTENT_LENGTH",
-
-        "debug_setts_host_ip": "IP",
-        "debug_setts_host_port": "PORT",
-        "debug_setts_flask_debug": "DEBUG"
-    }
 
     @staticmethod
-    def __json_parsing(json_dict: dict, dict_name: str, app: Flask) -> None:
+    def __json_parsing(json_dict: dict, dict_name: str, save_to_dict: dict) -> None:
         for key, value in json_dict.items():
             element_name = f"{dict_name}_{key}" if dict_name else key
 
             if isinstance(value, dict):
                 LoadConfig.__json_parsing(
-                    value, element_name, app
+                    value, element_name, save_to_dict
                 )
                 continue
 
-            if element_name in LoadConfig.rule_exceptions:
-                element_name = LoadConfig.rule_exceptions[element_name]
-
-            app.config[element_name] = value
+            save_to_dict[element_name] = value
 
     @staticmethod
-    def load_config(path: str, app: Flask) -> LoadConfigResponse:
+    def load_config(path: str, save_to_dict: dict) -> LoadConfigResponse:
         if not path:
             path = ".\\configs\\standard.config.json"
 
-        with open(path, "r") as file:
-            config_json = json.load(file)
+        try:
+            with open(path, "r") as file:
+                config_json = json.load(file)
+        except FileNotFoundError:    return LoadConfigResponse.FILE_NOT_FOUND
+        except json.JSONDecodeError: return LoadConfigResponse.STRUCTURE_ERROR
+        except:                      return LoadConfigResponse.UNKNOWN_ERROR
 
-        LoadConfig.__json_parsing(config_json, "", app)
+        LoadConfig.__json_parsing(config_json, "", save_to_dict)
 
         return LoadConfigResponse.DONE

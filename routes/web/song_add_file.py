@@ -6,8 +6,8 @@ from uuid import uuid4
 from os.path import join
 from flask import render_template, request
 from config import (
-    HCAPTCHA_SITE_KEY, PATH_TO_ROOT, PATH_TO_SONG,
-    GD_SERVER_NAME, DISCORD_CONFIRMATION
+    HCAPTCHA_SITE_KEY, PATH_TO_ROOT,
+    PATH_TO_SONG, GD_SERVER_NAME, DOMAIN
 )
 
 from utils import database as db
@@ -76,13 +76,6 @@ def song_add_file():
             message = f"You have recently uploaded a song to the server, please wait {timeout_str}!"
             raise
 
-        if DISCORD_CONFIRMATION:
-            if db.account.count_documents({
-                "_id": account_id, "discord_id": 0
-            }) == 1:
-                message = "You have not verified your account (read more on discord server)"
-                raise
-
         song_filename = song_file.filename
 
         if len(song_filename) > 88:
@@ -111,7 +104,7 @@ def song_add_file():
             "name": clear_prohibited_chars(song_filename[:-4]),
             "artist_name": f"{GD_SERVER_NAME} - LocalStorage",
             "account_id": account_id,
-            "link": PATH_TO_SONG + f"/{song_id}.mp3",
+            "link": DOMAIN + PATH_TO_SONG + f"/{song_id}.mp3",
             "size": song_info.st_size / (1024 * 1024),
             "is_local_storage": 1,
             "upload_time": int(time())
